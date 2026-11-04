@@ -1,0 +1,17 @@
+# /etc/systemd/system/ms-solicitudes.service  (EC2 B)
+[Unit]
+Description=MesaTech - Microservicio Solicitudes (consumidor)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/mesatech
+EnvironmentFile=/home/ubuntu/mesatech/solicitudes.env
+ExecStart=/usr/bin/java -jar /home/ubuntu/mesatech/ms-solicitudes.jar
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

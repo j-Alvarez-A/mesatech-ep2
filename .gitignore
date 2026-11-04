@@ -1,0 +1,10 @@
+# Secretos y valores reales (solo se suben los *.example)
+.env
+*.env
+!*.env.example
+*.pem
+# Compilados y dependencias
+target/
+node_modules/
+build/
+.idea/

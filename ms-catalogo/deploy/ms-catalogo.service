@@ -1,0 +1,17 @@
+# /etc/systemd/system/ms-catalogo.service  (EC2 A)
+[Unit]
+Description=MesaTech - Microservicio Catalogo (publicador)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/mesatech
+EnvironmentFile=/home/ubuntu/mesatech/catalogo.env
+ExecStart=/usr/bin/java -jar /home/ubuntu/mesatech/ms-catalogo.jar
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

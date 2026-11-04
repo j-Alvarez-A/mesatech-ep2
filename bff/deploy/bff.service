@@ -1,0 +1,17 @@
+# /etc/systemd/system/bff.service  (EC2 A)
+[Unit]
+Description=MesaTech - BFF (Backend for Frontend)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/mesatech
+EnvironmentFile=/home/ubuntu/mesatech/bff.env
+ExecStart=/usr/bin/java -jar /home/ubuntu/mesatech/bff.jar
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

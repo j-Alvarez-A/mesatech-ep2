@@ -1,0 +1,57 @@
+# =====================================================================
+#  MesaTech Cloud - Broker RabbitMQ (EC2 C, Ubuntu 24.04 LTS)
+#
+#  Uso:
+#    cp .env.example .env && nano .env      # credenciales reales (NO se versiona)
+#    docker compose config --quiet          # valida la sintaxis
+#    docker compose pull                    # descarga la imagen
+#    docker compose up -d                   # arranca en segundo plano
+#    docker compose ps                      # estado / health
+#    docker compose logs -f rabbitmq        # logs del broker
+# =====================================================================
+name: mesatech-broker
+
+services:
+  rabbitmq:
+    # Imagen OFICIAL con etiqueta explícita que incluye la interfaz de administración.
+    # (rabbitmq:3-management también funciona; fijar la versión menor hace la
+    #  instalación reproducible: siempre se descarga la misma serie 3.13.)
+    image: rabbitmq:3.13-management
+    container_name: mesatech-rabbitmq
+
+    # HOSTNAME ESTABLE: RabbitMQ guarda sus datos bajo el nombre de nodo
+    # rabbit@<hostname>. Si el hostname cambiara al recrear el contenedor,
+    # el nodo no encontraría su base de datos en el volumen y "perdería"
+    # vhost, usuarios, colas y mensajes (prueba P5).
+    hostname: rabbitmq-mesatech
+
+    # Reinicia el contenedor si falla o si la EC2 se reinicia (salvo docker compose stop).
+    restart: unless-stopped
+
+    # Credenciales del ADMINISTRADOR, leídas desde .env (fuera del repositorio).
+    # Las aplicaciones NO usan este usuario: tienen sus propios usuarios.
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_ADMIN_USER:?Defina RABBITMQ_ADMIN_USER en .env}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_ADMIN_PASSWORD:?Defina RABBITMQ_ADMIN_PASSWORD en .env}
+
+    ports:
+      # AMQP: solo debe permitirse en el security group desde los SG de EC2 A y EC2 B.
+      - "5672:5672"
+      # Management UI: solo desde la IP administrativa /32.
+      - "15672:15672"
+
+    volumes:
+      # VOLUMEN PERSISTENTE: definiciones durables + mensajes persistentes.
+      # "docker compose down" lo conserva; NUNCA usar "down -v" en las pruebas.
+      - rabbitmq_data:/var/lib/rabbitmq
+
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+volumes:
+  rabbitmq_data:
+    name: mesatech_rabbitmq_data
